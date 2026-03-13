@@ -672,16 +672,6 @@ All persistent state is managed through Streamlit's `st.session_state`. The `ini
 
 ---
 
-## Reference Scripts
-
-| Script | Description |
-|--------|-------------|
-| `master_script_infills_pushover_with_masses_and_nodal_loads.py` | Standalone infill pushover example with masses and nodal loads. The reference implementation that this app replicates. Use it to verify results or as a template for batch analyses. |
-| `master_script_pushover.py` | Bare frame pushover example (no infills, no masses). |
-| `master_script_IDA.py` | Incremental Dynamic Analysis example. |
-
----
-
 ## Units
 
 | Quantity | Unit | Notes |
