@@ -11,6 +11,8 @@
 
 The infill modeling follows the **equivalent strut approach** where each infill panel is represented by two diagonal truss elements forming an X-pattern. The masonry material uses the `Concrete01` uniaxial material with properties derived from the masonry compressive strength (f'm).
 
+A video demonstration example is hosted at: https://youtu.be/hIw_ROFiXus
+
 ## Key Differences from the Bare Frame App
 
 | Feature | `app_2d_building_analysis.py` | `app_2d_building_analysis_infills.py` |
