@@ -2,30 +2,19 @@
 
 ## Overview
 
-`app_2d_building_analysis_infills.py` is a Streamlit-based application for creating and analyzing 2D reinforced concrete frame buildings **with masonry infill walls**. It extends the base `app_2d_building_analysis.py` by adding:
+`app_2d_building_analysis_infills.py` is a Streamlit-based application for creating and analyzing 2D reinforced concrete frame buildings **with masonry infill walls**. The app covers the full workflow:
 
+- Definition of building geometry, RC materials, and cross-sections
+- Assignment of structural elements (columns and beams) per floor
 - Definition of masonry materials with configurable compressive strength and brick type
 - Assignment of infill panels to individual bays of the building frame
 - Modeling of infills as equivalent diagonal struts (X-pattern trusses) in OpenSeesPy
 - Visualization of the infilled frame with color-coded panels
+- Gravity and nonlinear pushover analysis with results visualization
 
 The infill modeling follows the **equivalent strut approach** where each infill panel is represented by two diagonal truss elements forming an X-pattern. The masonry material uses the `Concrete01` uniaxial material with properties derived from the masonry compressive strength (f'm).
 
 A video demonstration example is hosted at: https://youtu.be/hIw_ROFiXus
-
-## Key Differences from the Bare Frame App
-
-| Feature | `app_2d_building_analysis.py` | `app_2d_building_analysis_infills.py` |
-|---------|-------------------------------|---------------------------------------|
-| Tabs | 9 tabs | 14 tabs |
-| Masonry materials | Not available | Tab 3: define f'm, brick type |
-| Infill assignment | Not available | Tab 7: per-panel thickness + material |
-| Node masses | Not available | Sub-tab in Loads tab |
-| Nodal loads | Not available | Sub-tab in Loads tab |
-| Python script generation | Not available | Tab 10: standalone script export |
-| Modal analysis | Not available | Tab 11: eigenvalue analysis |
-| Diaphragm configuration | Not available | Configurable per-floor in Tab 6 |
-| Diagonal pair computation | Not available | Computed on model creation for infill geometry |
 
 ## Running the App
 
@@ -228,11 +217,11 @@ Available rebar sizes (defined in `library_2d.py`):
 
 | Name | Bar Size | Area (m²) |
 |------|----------|-----------|
-| As4 | #4 | 0.000127 |
-| As5 | #5 | 0.0002 |
-| As6 | #6 | 0.000286 |
-| As7 | #7 | 0.000387 |
-| As8 | #8 | 0.000508 |
+| As4 | #4 | 0.000127 m² |
+| As5 | #5 | 0.0002 m² |
+| As6 | #6 | 0.000286 m² |
+| As7 | #7 | 0.000387 m² |
+| As8 | #8 | 0.000508 m² |
 
 ---
 
@@ -669,6 +658,15 @@ All persistent state is managed through Streamlit's `st.session_state`. The `ini
 | `ut.load_beams()` / `ut.load_beams2()` | opseestools | Applies uniform/custom distributed loads |
 | `an.gravedad()` | opseestools | Runs gravity analysis |
 | `an.pushover2DRot()` | opseestools | Runs displacement-controlled pushover |
+
+---
+
+## Reference Scripts
+
+| Script | Description |
+|--------|-------------|
+| `master_script_infills_pushover_with_masses_and_nodal_loads.py` | Standalone infill pushover example with masses and nodal loads. The reference implementation that this app replicates. Use it to verify results or as a template for batch analyses. |
+| `master_script_IDA.py` | Incremental Dynamic Analysis example. |
 
 ---
 
