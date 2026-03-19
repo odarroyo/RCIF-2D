@@ -30,8 +30,6 @@ A video demonstration example is hosted at: https://youtu.be/hIw_ROFiXus
 ## Running the App
 
 ```bash
-# Activate the virtual environment
-source /Users/mac/virtual_environments/venv_openseespy2/bin/activate
 
 # Run the infills app
 streamlit run app_2d_building_analysis_infills.py
