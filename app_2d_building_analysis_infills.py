@@ -654,7 +654,7 @@ def render_geometry_tab():
                     hovermode='closest'
                 )
                 
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
                 
         except Exception as e:
             st.error(f"❌ Error creating model: {str(e)}")
@@ -846,7 +846,7 @@ def render_materials_tab():
             })
         
         df_materials = pd.DataFrame(materials_data)
-        st.dataframe(df_materials, use_container_width=True)
+        st.dataframe(df_materials, width='stretch')
     else:
         st.info("ℹ️ No materials defined yet. Add your first material above.")
 
@@ -933,7 +933,7 @@ def render_masonry_materials_tab():
                 'Tag': props['tag'],
             })
         df_mas = pd.DataFrame(mas_data)
-        st.dataframe(df_mas, use_container_width=True)
+        st.dataframe(df_mas, width='stretch')
 
         # Delete material
         st.markdown("**Delete a masonry material:**")
@@ -1179,7 +1179,7 @@ def render_sections_tab():
             H_section, B_section, cover,
             bars_top, bars_bottom, bars_middle
         )
-        st.plotly_chart(section_fig, use_container_width=True)
+        st.plotly_chart(section_fig, width='stretch')
     except Exception as e:
         st.warning(f"Preview not available: {str(e)}")
     
@@ -1251,7 +1251,7 @@ def render_sections_tab():
             })
         
         df_sections = pd.DataFrame(sections_data)
-        st.dataframe(df_sections, use_container_width=True)
+        st.dataframe(df_sections, width='stretch')
     else:
         st.info("ℹ️ No sections defined yet. Add your first section above.")
 
@@ -1638,7 +1638,7 @@ def render_assignment_tab():
                 st.session_state.beam_assignments,
                 st.session_state.sections
             )
-            st.plotly_chart(frame_fig, use_container_width=True, key="assignment_tab_viz")
+            st.plotly_chart(frame_fig, width='stretch', key="assignment_tab_viz")
         except Exception as e:
             st.error(f"❌ Error creating visualization: {str(e)}")
             st.code(str(e))
@@ -1698,7 +1698,7 @@ def render_model_visualization_tab():
             st.session_state.beam_assignments,
             st.session_state.sections
         )
-        st.plotly_chart(fig, use_container_width=True, key="model_viz_tab")
+        st.plotly_chart(fig, width='stretch', key="model_viz_tab")
     except Exception as e:
         st.error(f"❌ Error creating visualization: {str(e)}")
     
@@ -2197,7 +2197,7 @@ def render_infill_assignment_tab():
                 valid_panels,
                 st.session_state.masonry_materials
             )
-            st.plotly_chart(fig, use_container_width=True, key="infill_viz")
+            st.plotly_chart(fig, width='stretch', key="infill_viz")
         except Exception as e:
             st.error(f"❌ Error creating visualization: {str(e)}")
 
@@ -2218,7 +2218,7 @@ def render_infill_assignment_tab():
                         'Thickness (m)': thickness if is_valid and mat_name != 'None' else '-',
                     })
             df_infill = pd.DataFrame(table_data)
-            st.dataframe(df_infill, use_container_width=True)
+            st.dataframe(df_infill, width='stretch')
 
     # --- Apply Infills Button ---
     st.markdown("---")
@@ -2622,7 +2622,7 @@ def render_loads_and_masses_tab():
                 ),
             },
             hide_index=True,
-            use_container_width=True,
+            width='stretch',
             key="mass_editor"
         )
         
@@ -2740,7 +2740,7 @@ def render_loads_and_masses_tab():
                 "Mz (kN-m)": st.column_config.NumberColumn("Mz (kN-m)", step=1.0, format="%.2f"),
             },
             hide_index=True,
-            use_container_width=True,
+            width='stretch',
             key="load_editor"
         )
         
@@ -3439,7 +3439,8 @@ def render_pushover_results_tab():
     coordy = results.get('coordy', [])
     tagcols = results.get('tagcols', [])
     tagbeams = results.get('tagbeams', [])
-    
+    building_weight = results.get('building_weight', 0.0)
+
     # Display summary
     st.markdown("---")
     st.markdown("### 📊 Analysis Summary")
@@ -3462,10 +3463,11 @@ def render_pushover_results_tab():
     st.markdown("---")
     
     # Create sub-tabs for different plot types
-    plot_tab1, plot_tab2, plot_tab3 = st.tabs([
+    plot_tab1, plot_tab2, plot_tab3, plot_tab4 = st.tabs([
         "📈 Pushover Curve",
         "📊 Capacity Curve",
-        "🎯 Interactive Drift Analysis"
+        "🎯 Interactive Drift Analysis",
+        "📉 Normalized Pushover Curve"
     ])
     
     with plot_tab1:
@@ -3490,7 +3492,7 @@ def render_pushover_results_tab():
             showlegend=True
         )
         
-        st.plotly_chart(fig_pushover, use_container_width=True)
+        st.plotly_chart(fig_pushover, width='stretch')
     
     with plot_tab2:
         st.markdown("### Capacity Curve (Base Shear vs First Floor Drift)")
@@ -3517,7 +3519,7 @@ def render_pushover_results_tab():
                 showlegend=True
             )
             
-            st.plotly_chart(fig_capacity, use_container_width=True)
+            st.plotly_chart(fig_capacity, width='stretch')
         else:
             st.warning("⚠️ Drift data not available")
     
@@ -3587,7 +3589,7 @@ def render_pushover_results_tab():
                     showlegend=True
                 )
                 
-                st.plotly_chart(fig_drift_profile, use_container_width=True)
+                st.plotly_chart(fig_drift_profile, width='stretch')
             
             with col_plot2:
                 st.markdown("#### Pushover Curve with Selected Point")
@@ -3622,7 +3624,7 @@ def render_pushover_results_tab():
                     showlegend=True
                 )
                 
-                st.plotly_chart(fig_pushover_marker, use_container_width=True)
+                st.plotly_chart(fig_pushover_marker, width='stretch')
             
             # Building visualization with rotation scatter plot - MOVED BEFORE TABLES
             st.markdown("---")
@@ -3657,9 +3659,6 @@ def render_pushover_results_tab():
                 # Ensure coordx_local is not None
                 if coordx_local is None:
                     coordx_local = [0, 5, 10]
-                
-                n_x_pos = len(coordx_local)
-                n_spans = len(coordx_local) - 1
                 
                 # Get assignments if available
                 column_assignments = results.get('column_assignments', st.session_state.get('column_assignments', {}))
@@ -3743,9 +3742,10 @@ def render_pushover_results_tab():
                         rot_j = abs(rotations[idx, time_step, 2])
                         all_rotations.extend([rot_i, rot_j])
                         
-                        # Determine column position
-                        floor = idx // n_x_pos
-                        x_pos_idx = idx % n_x_pos
+                        # Determine column position from element tag encoding
+                        # create_elements2 uses: eltag = 100*(j+1) + i
+                        x_pos_idx = (col_tag // 100) - 1
+                        floor = col_tag % 100
                         
                         if floor < n_floors and x_pos_idx < len(coordx_local):
                             x = coordx_local[x_pos_idx]
@@ -3771,9 +3771,10 @@ def render_pushover_results_tab():
                         rot_j = abs(rotations[elem_idx, time_step, 2])
                         all_rotations.extend([rot_i, rot_j])
                         
-                        # Determine beam position
-                        floor = idx // n_spans
-                        span_idx = idx % n_spans
+                        # Determine beam position from element tag encoding
+                        # create_elements2 uses: eltag = 10000*(j+1) + i
+                        span_idx = (beam_tag // 10000) - 1
+                        floor = (beam_tag % 10000) - 1  # convert 1-based to 0-based
                         
                         if floor < n_floors and span_idx < len(coordx_local) - 1:
                             y = coordy[floor + 1]
@@ -3835,7 +3836,7 @@ def render_pushover_results_tab():
                     yaxis=dict(scaleanchor="x", scaleratio=1)
                 )
                 
-                st.plotly_chart(fig_building, use_container_width=True)
+                st.plotly_chart(fig_building, width='stretch')
             else:
                 st.warning("⚠️ Element tag information not available")
             
@@ -3861,8 +3862,9 @@ def render_pushover_results_tab():
                             rot_i = rotations[idx, time_step, 1]  # Rotation at end i (index 1)
                             rot_j = rotations[idx, time_step, 2]  # Rotation at end j (index 2)
                         
-                            # Determine floor (simplified - assumes sequential tagging)
-                            floor_num = (idx // (len(coordy) - 1)) + 1 if len(coordy) > 1 else 1
+                            # Determine floor from element tag encoding
+                            # create_elements2 uses: eltag = 100*(j+1) + i (0-based floor)
+                            floor_num = (col_tag % 100) + 1
                             
                             col_data.append({
                                 'Column Tag': col_tag,
@@ -3871,7 +3873,7 @@ def render_pushover_results_tab():
                             })
                     
                     col_df = pd.DataFrame(col_data)
-                    st.dataframe(col_df, use_container_width=True, hide_index=True, height=400)
+                    st.dataframe(col_df, width='stretch', hide_index=True, height=400)
                     
                     # Export button
                     csv_col = col_df.to_csv(index=False)
@@ -3896,8 +3898,9 @@ def render_pushover_results_tab():
                             rot_i = rotations[elem_idx, time_step, 1]  # Rotation at end i (index 1)
                             rot_j = rotations[elem_idx, time_step, 2]  # Rotation at end j (index 2)
                             
-                            # Determine floor
-                            floor_num = (idx // max(1, len(coordy) - 2)) + 1 if len(coordy) > 1 else 1
+                            # Determine floor from element tag encoding
+                            # create_elements2 uses: eltag = 10000*(j+1) + i (1-based floor)
+                            floor_num = beam_tag % 10000
                             
                             beam_data.append({
                                 'Beam Tag': beam_tag,
@@ -3907,7 +3910,7 @@ def render_pushover_results_tab():
                             })
                     
                     beam_df = pd.DataFrame(beam_data)
-                    st.dataframe(beam_df, use_container_width=True, hide_index=True, height=400)
+                    st.dataframe(beam_df, width='stretch', hide_index=True, height=400)
                     
                     # Export button
                     csv_beam = beam_df.to_csv(index=False)
@@ -3921,6 +3924,55 @@ def render_pushover_results_tab():
                 st.warning("⚠️ Element tag information not available")
         else:
             st.warning("⚠️ Building geometry information not available")
+
+    with plot_tab4:
+        st.markdown("### Normalized Pushover Curve (V/W vs δ/H)")
+
+        building_height = coordy[-1] if len(coordy) > 0 else 0
+
+        if building_weight > 0 and building_height > 0:
+            delta_over_H = [d / building_height for d in dtecho]
+            V_over_W = [v / building_weight for v in Vbasal]
+
+            fig_norm = go.Figure()
+            fig_norm.add_trace(go.Scatter(
+                x=delta_over_H,
+                y=V_over_W,
+                mode='lines+markers',
+                name='Normalized Pushover',
+                line=dict(color='green', width=2),
+                marker=dict(size=4)
+            ))
+
+            fig_norm.update_layout(
+                title="Normalized Pushover Curve",
+                xaxis_title="δ/H (Roof Drift Ratio)",
+                yaxis_title="V/W (Base Shear Coefficient)",
+                height=600,
+                hovermode='closest',
+                showlegend=True
+            )
+
+            st.plotly_chart(fig_norm, width='stretch')
+
+            # Export normalized curve
+            norm_df = pd.DataFrame({
+                'delta/H': delta_over_H,
+                'V/W': V_over_W
+            })
+            csv_norm = norm_df.to_csv(index=False)
+            st.download_button(
+                label="📤 Download Normalized Curve CSV",
+                data=csv_norm,
+                file_name="normalized_pushover_curve.csv",
+                mime="text/csv",
+                key="export_normalized_csv"
+            )
+        else:
+            if building_weight <= 0:
+                st.warning("⚠️ Building weight not available. Please assign masses in the model to enable normalization.")
+            if building_height <= 0:
+                st.warning("⚠️ Building height not available.")
 
 
 # ==================== TAB 8: PYTHON SCRIPT ====================
@@ -4098,7 +4150,7 @@ def render_analysis_tab():
                     showlegend=True
                 )
                 
-                st.plotly_chart(fig_pushover, use_container_width=True, key="pushover_curve")
+                st.plotly_chart(fig_pushover, width='stretch', key="pushover_curve")
                 
                 # First Floor Drift vs Base Shear
                 if len(drifts) > 0:
@@ -4127,7 +4179,7 @@ def render_analysis_tab():
                         showlegend=True
                     )
                     
-                    st.plotly_chart(fig_drift_capacity, use_container_width=True, key="drift_capacity_curve")
+                    st.plotly_chart(fig_drift_capacity, width='stretch', key="drift_capacity_curve")
                 
                 # Save pushover results button
                 st.markdown("---")
@@ -4156,7 +4208,25 @@ def render_analysis_tab():
                             st.success(f"✅ Results saved to: {results_path}")
                         except Exception as e:
                             st.error(f"❌ Error saving results: {str(e)}")
-                
+
+                # Export pushover curve to CSV
+                st.markdown("---")
+                st.markdown("### 📤 Export Pushover Curve")
+
+                pushover_df = pd.DataFrame({
+                    'Roof Displacement (m)': dtecho,
+                    'Base Shear (kN)': Vbasal
+                })
+
+                csv_data = pushover_df.to_csv(index=False)
+                st.download_button(
+                    label="📤 Download Pushover Curve CSV",
+                    data=csv_data,
+                    file_name="pushover_curve.csv",
+                    mime="text/csv",
+                    key="export_pushover_csv"
+                )
+
         else:
             if st.button("🚀 Run Pushover Analysis", type="primary", key="run_pushover_2d"):
                 try:

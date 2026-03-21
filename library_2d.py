@@ -226,6 +226,138 @@ def build_element_tags_list_2d(assignments, sections, num_floors, num_positions)
     return tags_list
 
 
+def rebuild_model_from_state(coordx, coordy, materials, sections,
+                              column_assignments, beam_assignments,
+                              floor_diaphragms, load_type, load_data,
+                              node_masses, node_loads):
+    """
+    Rebuild the entire OpenSeesPy model from session state for a clean analysis.
+
+    This ensures the C-level model state is identical to what a standalone script
+    would produce (wipe → full sequential build), avoiding any accumulated state
+    from the incremental Streamlit workflow.
+
+    Parameters
+    ----------
+    coordx : list
+        X coordinates
+    coordy : list
+        Y coordinates
+    materials : dict
+        Material definitions {name: {fc, fy, detailing, noconf_tag, conf_tag, acero_tag}}
+    sections : dict
+        Section definitions {name: {tag, H, B, cover, material, bars_*, area_*}}
+    column_assignments : dict
+        {floor: {x_idx: section_name}}
+    beam_assignments : dict
+        {floor: {span_idx: section_name}}
+    floor_diaphragms : list
+        List of 0/1 per floor
+    load_type : str
+        'same' or 'beamwise'
+    load_data : dict
+        Load parameters (floor_beam_loads, roof_beam_loads, or beam_loads)
+    node_masses : dict
+        {node_tag: mass_value}
+    node_loads : dict
+        {node_tag: {Fx, Fy, Mz}}
+
+    Returns
+    -------
+    tuple
+        (tagcols, tagbeams) - element tag lists
+    """
+    import opseestools.analisis as an
+
+    # 1. Clean slate
+    wipe()
+    model('basic', '-ndm', 2, '-ndf', 3)
+    ut.creategrid(coordx, coordy)
+    fixY(0, 1, 1, 1)
+
+    # 2. Recreate materials with the exact same tags as original
+    for mat_name, mat_props in materials.items():
+        ut.col_materials(
+            mat_props['fc'], mat_props['fy'],
+            detailing=mat_props['detailing'],
+            nps=3,
+            unctag=mat_props['noconf_tag'],
+            conftag=mat_props['conf_tag'],
+            steeltag=mat_props['acero_tag']
+        )
+
+    # 3. Recreate sections
+    # Note: session state stores rebar areas as string names ('As6', etc.)
+    # Must convert to float values via REBAR_AREAS before passing to OpenSeesPy
+    def _resolve_area(area_val):
+        """Convert rebar area: string name -> float, or pass through if already float."""
+        if isinstance(area_val, str):
+            return REBAR_AREAS[area_val]
+        return area_val
+
+    for sec_name, sec_props in sections.items():
+        mat_props = materials[sec_props['material']]
+        cover = sec_props.get('cover', 0.05)
+        area_top = _resolve_area(sec_props['area_top'])
+        area_bottom = _resolve_area(sec_props['area_bottom'])
+
+        if sec_props.get('bars_middle', 0) == 0:
+            ut.create_rect_RC_section(
+                sec_props['tag'], sec_props['H'], sec_props['B'], cover,
+                mat_props['conf_tag'], mat_props['noconf_tag'], mat_props['acero_tag'],
+                sec_props['bars_top'], area_top,
+                sec_props['bars_bottom'], area_bottom
+            )
+        else:
+            area_middle = _resolve_area(sec_props['area_middle'])
+            ut.create_rect_RC_section(
+                sec_props['tag'], sec_props['H'], sec_props['B'], cover,
+                mat_props['conf_tag'], mat_props['noconf_tag'], mat_props['acero_tag'],
+                sec_props['bars_top'], area_top,
+                sec_props['bars_bottom'], area_bottom,
+                sec_props['bars_middle'], area_middle
+            )
+
+    # 4. Create elements
+    n_floors = len(coordy) - 1
+    n_x = len(coordx)
+    n_spans = len(coordx) - 1
+    building_columns = build_element_tags_list_2d(column_assignments, sections, n_floors, n_x)
+    building_beams = build_element_tags_list_2d(beam_assignments, sections, n_floors, n_spans)
+    tagcols, tagbeams, col_info, beam_info = ut.create_elements2(
+        coordx, coordy, building_columns, building_beams, output=1
+    )
+    ut.remove_hanging_nodes(tagcols, tagbeams)
+
+    # 5. Diaphragms
+    if floor_diaphragms and sum(floor_diaphragms) > 0:
+        ut.apply_diaphragms(floor_diaphragms, output=1)
+
+    # 6. Loads
+    if load_type == 'same':
+        ut.load_beams(
+            -load_data['floor_beam_loads'],
+            -load_data['roof_beam_loads'],
+            tagbeams
+        )
+    else:
+        beam_loads = load_data.get('beam_loads', [])
+        if beam_loads:
+            ut.load_beams2(beam_loads, tagbeams, output=1)
+
+    # 7. Masses
+    for node_tag, mass_val in node_masses.items():
+        if mass_val > 0:
+            mass(int(node_tag), mass_val, mass_val, 0.0)
+
+    # 8. Nodal loads (if any)
+    for node_tag, loads in node_loads.items():
+        if loads['Fx'] != 0 or loads['Fy'] != 0 or loads['Mz'] != 0:
+            load(int(node_tag), loads['Fx'], loads['Fy'], loads['Mz'])
+
+    return tagcols, tagbeams
+
+
 # ==================== VISUALIZATION FUNCTIONS ====================
 def create_2d_frame_figure(coordx, coordy, column_assignments, beam_assignments, sections):
     """
